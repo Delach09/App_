@@ -1,9 +1,7 @@
 const API = "https://pokeapi.co/api/v2/pokemon?limit=151";
 
 export async function getCharacters() {
-
 try {
-
     const response = await fetch(API);
 
     if (!response.ok) {
@@ -14,21 +12,27 @@ try {
 
     const data = await response.json();
 
-    return data.results.map((pokemon) => {
+    const pokemons = await Promise.all(
+    data.results.map(async (pokemon) => {
 
-    const id = pokemon.url
-        .split("/")
-        .filter(Boolean)
-        .pop();
+        const detailResponse = await fetch(
+        pokemon.url
+        );
 
-    return {
-        id,
-        name: pokemon.name,
-        image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
-        species: "Pokémon"
-    };
+        const detailData =
+        await detailResponse.json();
 
-    });
+        return {
+        id: detailData.id,
+        name: detailData.name,
+        image: detailData.sprites.front_default,
+        species: "Pokémon",
+        types: detailData.types
+        };
+    })
+    );
+
+    return pokemons;
 
 } catch (error) {
 
@@ -39,5 +43,4 @@ try {
     );
 
 }
-
 }
